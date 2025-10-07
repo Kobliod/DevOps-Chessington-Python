@@ -36,50 +36,39 @@ class Piece(ABC):
 
 
 class Pawn(Piece):
-    """
-    A class representing a chess pawn.
-    """
-    # board coordinates assumed 0..7 (standard 8x8)
     BOARD_MIN = 0
     BOARD_MAX = 7
 
-    def _in_bounds(self, row: int, col: int) -> bool:
+    def _is_on_board(self, row: int, col: int) -> bool:
         return self.BOARD_MIN <= row <= self.BOARD_MAX and self.BOARD_MIN <= col <= self.BOARD_MAX
 
-    def get_available_moves(self, board) -> List[Square]:
-        current_square = board.find_piece(self)
+    def get_available_moves(self, board) -> list[Square]:
+        current = board.find_piece(self)
         moves = []
 
-        if self.player == Player.BLACK:
-            # one step forward
-            r1, c = current_square.row - 1, current_square.col
-            if self._in_bounds(r1, c):
-                one_step = Square.at(r1, c)
-                if board.get_piece(one_step) is None:
-                    moves.append(one_step)
+        # Direction and starting row
+        direction = -1 if self.player == Player.BLACK else 1
+        start_row = 6 if self.player == Player.BLACK else 1
 
-                    # two-step from starting row (6 for black)
-                    if current_square.row == 6:
-                        r2 = current_square.row - 2
-                        if self._in_bounds(r2, c):
-                            two_step = Square.at(r2, c)
-                            if board.get_piece(two_step) is None:
-                                moves.append(two_step)
+        # Forward moves
+        forward_one_row = current.row + direction
+        forward_two_row = current.row + 2 * direction
 
-        else:  # Player.WHITE
-            r1, c = current_square.row + 1, current_square.col
-            if self._in_bounds(r1, c):
-                one_step = Square.at(r1, c)
-                if board.get_piece(one_step) is None:
-                    moves.append(one_step)
+        if self._is_on_board(forward_one_row, current.col) and not board.get_piece(Square.at(forward_one_row, current.col)):
+            moves.append(Square.at(forward_one_row, current.col))
 
-                    # two-step from starting row (1 for white)
-                    if current_square.row == 1:
-                        r2 = current_square.row + 2
-                        if self._in_bounds(r2, c):
-                            two_step = Square.at(r2, c)
-                            if board.get_piece(two_step) is None:
-                                moves.append(two_step)
+            # Two-step forward from starting row
+            if current.row == start_row and self._is_on_board(forward_two_row, current.col) and not board.get_piece(Square.at(forward_two_row, current.col)):
+                moves.append(Square.at(forward_two_row, current.col))
+
+        # Diagonal captures
+        for col_offset in (-1, 1):
+            diag_col = current.col + col_offset
+            if not self._is_on_board(forward_one_row, diag_col):
+                continue
+            target_piece = board.get_piece(Square.at(forward_one_row, diag_col))
+            if target_piece is not None and target_piece.player != self.player:
+                moves.append(Square.at(forward_one_row, diag_col))
 
         return moves
 
