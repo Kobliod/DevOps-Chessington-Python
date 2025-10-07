@@ -41,12 +41,29 @@ class Pawn(Piece):
     """
     def get_available_moves(self, board) -> List[Square]:
         current_square = board.find_piece(self)
+        moves = []
+
         if self.player == Player.BLACK:
-            square_in_front = Square.at(current_square.row - 1, current_square.col)
-            return [square_in_front]
+            one_step = Square.at(current_square.row - 1, current_square.col)
+            if board.get_piece(one_step) is None:
+                moves.append(one_step)
+            
+                if current_square.row == 6:
+                    two_step = (Square.at(current_square.row - 2, current_square.col))
+                    if board.get_piece(two_step) is None:
+                        moves.append(two_step)
+
         else:
-            square_in_front = Square.at(current_square.row + 1, current_square.col)
-            return [square_in_front]
+            one_step = Square.at(current_square.row + 1, current_square.col)
+            if board.get_piece(one_step) is None:
+                moves.append(one_step)
+            
+                if current_square.row == 1:
+                    two_step = (Square.at(current_square.row + 2, current_square.col))
+                    if board.get_piece(two_step) is None:
+                        moves.append(two_step)
+
+        return moves
 
 
 class Knight(Piece):
