@@ -39,53 +39,98 @@ class Pawn(Piece):
     BOARD_MIN = 0
     BOARD_MAX = 7
 
-    def _is_on_board(self, row: int, col: int) -> bool:
-        return self.BOARD_MIN <= row <= self.BOARD_MAX and self.BOARD_MIN <= col <= self.BOARD_MAX
-
-    def get_available_moves(self, board) -> list[Square]:
-        current = board.find_piece(self)
+    def get_available_moves(self, board: Board) -> list:
+        current_square = board.find_piece(self)
         moves = []
 
-        # Direction and starting row
-        direction = -1 if self.player == Player.BLACK else 1
-        start_row = 6 if self.player == Player.BLACK else 1
+        # Determine direction based on player
+        direction = 1 if self.player == Player.WHITE else -1
+        next_row = current_square.row + direction
+        col = current_square.col
 
-        # Forward moves
-        forward_one_row = current.row + direction
-        forward_two_row = current.row + 2 * direction
+        # Move forward if square is empty
+        if 0 <= next_row <= 7:
+            forward_square = board.squares[next_row][col]
+            if forward_square.is_empty():
+                moves.append(forward_square)
 
-        if self._is_on_board(forward_one_row, current.col) and not board.get_piece(Square.at(forward_one_row, current.col)):
-            moves.append(Square.at(forward_one_row, current.col))
-
-            # Two-step forward from starting row
-            if current.row == start_row and self._is_on_board(forward_two_row, current.col) and not board.get_piece(Square.at(forward_two_row, current.col)):
-                moves.append(Square.at(forward_two_row, current.col))
-
-        # Diagonal captures
-        for col_offset in (-1, 1):
-            diag_col = current.col + col_offset
-            if not self._is_on_board(forward_one_row, diag_col):
-                continue
-            target_piece = board.get_piece(Square.at(forward_one_row, diag_col))
-            if target_piece is not None and target_piece.player != self.player:
-                moves.append(Square.at(forward_one_row, diag_col))
+        # Add diagonal captures
+        for col_offset in [-1, 1]:
+            new_col = col + col_offset
+            if 0 <= new_col <= 7 and 0 <= next_row <= 7:
+                diag_square = board.squares[next_row][new_col]
+                if not diag_square.is_empty() and diag_square.piece.player != self.player:
+                    moves.append(diag_square)
 
         return moves
+
+    def promote_if_needed(self, board: Board):
+        """
+        Call this after the pawn moves. Promotes pawn to a queen automatically.
+        """
+        current_square = board.find_piece(self)
+        # White promotion on row 7, Black promotion on row 0
+        if (self.player == Player.WHITE and current_square.row == 7) or \
+           (self.player == Player.BLACK and current_square.row == 0):
+            # Replace pawn with a new Queen of same player
+            board.squares[current_square.row][current_square.col].piece = Queen(self.player)
+
 
 
 class Knight(Piece):
     """
     A class representing a chess knight.
     """
+    BOARD_MIN = 0
+    BOARD_MAX = 7
 
-    def get_available_moves(self, board):
-        return []
+    # All possible L-shaped moves for a knight
+    KNIGHT_MOVES = [
+        (2, 1), (2, -1),
+        (-2, 1), (-2, -1),
+        (1, 2), (1, -2),
+        (-1, 2), (-1, -2)
+    ]
+
+    def _is_on_board(self, row: int, col: int) -> bool:
+        return self.BOARD_MIN <= row <= self.BOARD_MAX and self.BOARD_MIN <= col <= self.BOARD_MAX
+
+    def get_available_moves(self, board: Board) -> list:
+        """
+        Returns a list of Squares the knight can move to.
+        """
+        current_square = board.find_piece(self)
+        possible_moves = []
+
+        for row_offset, col_offset in self.KNIGHT_MOVES:
+            new_row = current_square.row + row_offset
+            new_col = current_square.col + col_offset
+
+            if self._is_on_board(new_row, new_col):
+                square = board.squares[new_row][new_col]
+                if square.is_empty() or square.piece.player != self.player:
+                    possible_moves.append(square)
+
+        return possible_moves
+
 
 
 class Bishop(Piece):
     """
     A class representing a chess bishop.
     """
+
+    BOARD_MIN = 0
+    BOARD_MAX = 7
+
+    #All possible moves for a bishop
+    BISHOP_MOVES = {
+
+
+
+
+    }
+
 
     def get_available_moves(self, board):
         return []

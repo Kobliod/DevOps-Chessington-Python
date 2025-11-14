@@ -1,6 +1,7 @@
 from chessington.engine.board import Board
 from chessington.engine.data import Player, Square
 from chessington.engine.pieces import Pawn
+from chessington.engine.pieces import Knight
 
 class TestPawns:
 
@@ -216,3 +217,24 @@ class TestPawns:
 
         # Assert
         assert Square.at(4, 4) not in moves
+
+
+class TestKnight:
+    def test_knight_center_moves(self):
+        board = Board.empty()
+        knight = Knight(Player.WHITE)
+        start_square = Square.at(4, 4)
+        board.set_piece(start_square, knight)
+
+        moves = knight.get_available_moves(board)
+        expected_positions = [
+            Square.at(6, 5), Square.at(6, 3),
+            Square.at(2, 5), Square.at(2, 3),
+            Square.at(5, 6), Square.at(5, 2),
+            Square.at(3, 6), Square.at(3, 2)
+        ]
+
+        for pos in expected_positions:
+            assert pos in moves
+        assert len(moves) == 8
+
